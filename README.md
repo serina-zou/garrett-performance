@@ -1,32 +1,36 @@
-# Garrett Comer — athlete journal
+# Garrett Comer: Athlete Performance Site
 
-A responsive athlete profile and 2023–2025 cross-country race archive. Plain HTML, CSS and JavaScript; no build step.
+**[View live site →](https://serina-zou.github.io/garrette-performance/)**
 
-## Preview
+A responsive athlete profile and race archive for a high school cross-country runner, covering 26 races across the 2023–2025 seasons. The athlete, his coaches and his family can explore results and see how performance changes within and across seasons.
 
-Run `python3 -m http.server 8765` in this directory, then open http://localhost:8765.
+Built as my final project for SI 338 at the University of Michigan (Jan–Apr 2026).
 
-## Design
+**My role:** UX/UI design and front-end development (sole designer and developer)
+**Built with:** HTML, CSS, JavaScript (canvas chart, no libraries or build step)
 
-An editorial athlete introduction, career summary, season chart and compact race archive replace the original sidebar and card grid. The palette combines warm off-white, forest green and a pale lime accent. Existing athlete photographs and all 26 race records are retained.
+## Design decisions
 
-References supplied by the site owner: [Wix Sports Psychologist template](https://www.wix.com/website-template/view/html/2583) and [The Last Tango](https://www.thelasttango.com/). No reference-site assets or code are copied.
+- **Separating trend from noise.** Each season's chart has a dashed regression line and a grey season-average line, so a single bad race doesn't look like a decline.
+- **Benchmarking the season opener.** The first race of a season has no earlier race to compare against, so its tooltip compares it to the previous season's average instead.
+- **Even spacing.** The x-axis is indexed by race order rather than date, so races held close together don't bunch up.
+- **Chart and archive work together.** Clicking a point on the chart scrolls to that race in the archive and highlights it. Season tabs on the chart are kept separate from the archive filters.
 
-## Behavior and accessibility
+## Accessibility
 
-- Latest recorded season opens by default; chart tabs are independent of archive filters.
-- Search and year filtering work together, with a visible live results count.
-- Chart-point navigation clears archive filters so the destination can be reached.
-- An expandable HTML data table gives a keyboard-accessible alternative to the canvas.
-- Skip navigation, visible focus, reduced motion, descriptive photo text and narrow-screen layouts are included.
-- Missing race photos do not render placeholder cards; results still display without JavaScript.
+- An expandable HTML data table gives keyboard and screen-reader users an alternative to the canvas chart.
+- Skip navigation, visible focus states, descriptive photo text and `prefers-reduced-motion` support.
+- Results still display without JavaScript, and layouts adapt to narrow screens.
 
 ## Data caveats
 
-The page is an archive through 2025, not a current athlete status feed. The supplied 5000m records remain unchanged. Distance is not independently parsed by the existing chart, so future additions must be checked for distance comparability. Regression uses race sequence, not elapsed calendar time; course and weather differences are not controlled. Trend labels describe recorded times rather than proving fitness changes.
+- The regression uses race order, not calendar time, and does not control for course or weather differences.
+- Trend labels describe recorded times. They do not prove changes in fitness.
+- The site is an archive through 2025, not a live results feed.
 
-## Verification
+## Run locally
 
-JavaScript syntax and preservation of all race names, dates, results and source links are checked. DOM interaction checks cover filtering, default season, chart switching and data-table navigation. Browser screenshots were blocked by the host's macOS browser-launch sandbox; desktop/mobile visual review is still required before publication.
-
-Changes are local and have not been pushed or deployed.
+```bash
+python3 -m http.server 8765
+```
+Then open http://localhost:8765.
