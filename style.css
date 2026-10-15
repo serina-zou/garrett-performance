@@ -347,6 +347,10 @@ h2 {
   padding: 10px;
   border-bottom: 1px solid var(--border);
 }
+.chart-table .season-summary th {
+  font-weight: 600;
+  background: var(--surface-alt);
+}
 .archive-kicker {
   margin-top: 65px;
 }
