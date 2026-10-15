@@ -20,7 +20,7 @@
     button.setAttribute("aria-controls", panel.id);
     button.setAttribute(
       "aria-label",
-      "Show full photo: " + card.querySelector(".race-name").textContent.trim(),
+      "View full photo +: " + card.querySelector(".race-name").textContent.trim(),
     );
     var inner = document.createElement("div");
     inner.className = "race-photo-inner";
@@ -45,7 +45,7 @@
       button.textContent = open ? "Close photo −" : "View full photo +";
       button.setAttribute(
         "aria-label",
-        (open ? "Close photo: " : "Show full photo: ") +
+        button.textContent + ": " +
           card.querySelector(".race-name").textContent.trim(),
       );
     }

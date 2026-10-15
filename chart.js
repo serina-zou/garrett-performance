@@ -130,33 +130,88 @@
     return data;
   }
 
+  // Shared by the canvas and its accessible season summaries.
+  function seasonAverage(series) {
+    var sum = series.reduce(function (a, d) {
+      return a + d.timeSec;
+    }, 0);
+    var avg = sum / series.length;
+    return avg;
+  }
+
+  function seasonRegression(series) {
+    var n = series.length;
+    if (n < 3) return null;
+
+    var sX = 0,
+      sY = 0,
+      sXY = 0,
+      sX2 = 0;
+    series.forEach(function (d, i) {
+      sX += i;
+      sY += d.timeSec;
+      sXY += i * d.timeSec;
+      sX2 += i * i;
+    });
+    var slope = (n * sXY - sX * sY) / (n * sX2 - sX * sX);
+    var intercept = (sY - slope * sX) / n;
+
+    return {
+      slope: slope,
+      intercept: intercept,
+      label: slope < 0 ? "Faster trend" : "Slower trend",
+    };
+  }
+
   /* ============================================================
      ACCESSIBLE FALLBACK TABLE
   ============================================================ */
   function buildFallbackTable(data) {
-    var tbody = document.getElementById("chart-table-body");
-    if (!tbody) return;
+    var table = document.getElementById("chart-table");
+    if (!table) return;
+    var byYear = {};
     data.forEach(function (d) {
-      var tr = document.createElement("tr");
-      tr.innerHTML =
-        '<td><a href="#' +
-        d.cardId +
-        '">' +
-        d.name +
-        "</a></td>" +
-        "<td>" +
-        d.date +
-        "</td>" +
-        "<td>" +
-        d.timeStr +
-        "</td>" +
-        "<td>" +
-        d.year +
-        "</td>" +
-        "<td>" +
-        (d.deltaStr || "Season opener") +
-        "</td>";
-      tbody.appendChild(tr);
+      if (!byYear[d.year]) byYear[d.year] = [];
+      byYear[d.year].push(d);
+    });
+    Object.keys(byYear).sort().forEach(function (year) {
+      var series = byYear[year];
+      var tbody = document.createElement("tbody");
+      var summary = document.createElement("tr");
+      summary.className = "season-summary";
+      var heading = document.createElement("th");
+      heading.scope = "rowgroup";
+      heading.colSpan = 5;
+      var regression = seasonRegression(series);
+      heading.textContent =
+        year + " season: " + series.length + " races · average " +
+        formatSeconds(seasonAverage(series)) +
+        (regression ? " · " + regression.label.toLowerCase() : "");
+      summary.appendChild(heading);
+      tbody.appendChild(summary);
+      series.forEach(function (d) {
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          '<td><a href="#' +
+          d.cardId +
+          '">' +
+          d.name +
+          "</a></td>" +
+          "<td>" +
+          d.date +
+          "</td>" +
+          "<td>" +
+          d.timeStr +
+          "</td>" +
+          "<td>" +
+          d.year +
+          "</td>" +
+          "<td>" +
+          (d.deltaStr || "Season opener") +
+          "</td>";
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
     });
   }
 
@@ -323,10 +378,7 @@
      DRAW: AVERAGE LINE (grey horizontal)
   ============================================================ */
   function drawAverageLine(series, sc, dims) {
-    var sum = series.reduce(function (a, d) {
-      return a + d.timeSec;
-    }, 0);
-    var avg = sum / series.length;
+    var avg = seasonAverage(series);
     var y = sc.toY(avg);
     var muted = getCSSVar("--muted") || "#7a96b4";
 
@@ -354,21 +406,11 @@
      DRAW: REGRESSION LINE (dashed, season color)
   ============================================================ */
   function drawRegressionLine(series, sc, color) {
+    var regression = seasonRegression(series);
+    if (!regression) return;
     var n = series.length;
-    if (n < 3) return;
-
-    var sX = 0,
-      sY = 0,
-      sXY = 0,
-      sX2 = 0;
-    series.forEach(function (d, i) {
-      sX += i;
-      sY += d.timeSec;
-      sXY += i * d.timeSec;
-      sX2 += i * i;
-    });
-    var slope = (n * sXY - sX * sY) / (n * sX2 - sX * sX);
-    var intercept = (sY - slope * sX) / n;
+    var slope = regression.slope;
+    var intercept = regression.intercept;
 
     var x0 = sc.toX(0);
     var y0 = sc.toY(intercept);
@@ -388,7 +430,7 @@
 
     // Label drawn INSIDE the chart, above the line end point
     var improving = slope < 0;
-    var label = improving ? "Faster trend" : "Slower trend";
+    var label = regression.label;
     ctx.font = "10px Arial,sans-serif";
     ctx.textAlign = "left";
     ctx.fillStyle = improving ? "#35633b" : "#9b3829";
